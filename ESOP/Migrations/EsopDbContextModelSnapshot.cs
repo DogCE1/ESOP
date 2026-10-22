@@ -25,7 +25,8 @@ namespace ESOP.Migrations
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(150)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("TEXT")
+                        .UseCollation("NOCASE");
 
                     b.Property<string>("FullName")
                         .IsRequired()
@@ -43,6 +44,9 @@ namespace ESOP.Migrations
                         .HasColumnType("TEXT");
 
                     b.HasKey("StaffId");
+
+                    b.HasIndex("Email")
+                        .IsUnique();
 
                     b.ToTable("Staff");
                 });

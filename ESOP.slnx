@@ -1,3 +1,4 @@
 <Solution>
+  <Project Path="ESOP.Tests/ESOP.Tests.csproj" />
   <Project Path="ESOP/ESOP.csproj" />
 </Solution>
