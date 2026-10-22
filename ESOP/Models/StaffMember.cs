@@ -5,7 +5,8 @@ namespace ESOP.Models;
 
 public class StaffMember
 {
-    public int StaffId { get; set; } //Gets no required, because gets no user input, the service assigns it
+    [Key] //Primary key of the Staff table. Not [Required], because it gets no user input, the database assigns it
+    public int StaffId { get; set; }
 
     [Required]
     [StringLength(100)]
