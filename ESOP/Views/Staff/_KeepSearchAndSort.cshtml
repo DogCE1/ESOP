@@ -1,0 +1,7 @@
+@model ESOP.Models.StaffIndexViewModel
+
+<!--Sends the current search and sort along with a Create/Edit/Delete form,
+    so the controller can redirect back to the same view of the table afterwards-->
+<input type="hidden" name="search" value="@Model.Search"/>
+<input type="hidden" name="sort" value="@Model.Sort"/>
+<input type="hidden" name="dir" value="@(Model.Descending ? "desc" : "asc")"/>

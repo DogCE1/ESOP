@@ -40,7 +40,7 @@ public class StaffController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken] //Rejects posts that did not come from our own form (CSRF protection)
-    public IActionResult Create(StaffMember staffMember)
+    public IActionResult Create(StaffMember staffMember, string? search = null, string? sort = null, string? dir = null)
     {
         if (ModelState.IsValid) //Checks if the submitted data passed all validation rules
         {
@@ -53,19 +53,19 @@ public class StaffController : Controller
             catch (ArgumentException ex)
             {
                 TempData["EMessage"] = ex.Message;
-                return RedirectToAction("Index");
+                return BackToIndex(search, sort, dir);
             }
         }
         else
         {
             TempData["EMessage"] = ValidationErrors();
         }
-        return RedirectToAction("Index");
+        return BackToIndex(search, sort, dir);
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public IActionResult Edit(StaffMember staffMember)
+    public IActionResult Edit(StaffMember staffMember, string? search = null, string? sort = null, string? dir = null)
     {
         if (ModelState.IsValid)
         {
@@ -78,19 +78,19 @@ public class StaffController : Controller
             catch (ArgumentException ex)
             {
                 TempData["EMessage"] = ex.Message;
-                return RedirectToAction("Index");
+                return BackToIndex(search, sort, dir);
             }
         }
         else
         {
             TempData["EMessage"] = ValidationErrors();
         }
-        return RedirectToAction("Index");
+        return BackToIndex(search, sort, dir);
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public IActionResult Delete(int id)
+    public IActionResult Delete(int id, string? search = null, string? sort = null, string? dir = null)
     {
         try
         {
@@ -101,9 +101,16 @@ public class StaffController : Controller
         catch (ArgumentException ex)
         {
             TempData["EMessage"] = ex.Message;
-            return RedirectToAction("Index");
+            return BackToIndex(search, sort, dir);
         }
-        return RedirectToAction("Index");
+        return BackToIndex(search, sort, dir);
+    }
+
+    //Back to the staff table with the same search and sort the user had before (values come from _KeepSearchAndSort.cshtml).
+    //Empty values are left out of the URL, and Index itself ignores anything invalid
+    private RedirectToActionResult BackToIndex(string? search, string? sort, string? dir)
+    {
+        return RedirectToAction("Index", new { search, sort, dir });
     }
 
     //Joins all validation messages into one line so the user sees why their input was rejected

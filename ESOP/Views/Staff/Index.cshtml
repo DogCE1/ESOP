@@ -131,6 +131,7 @@
             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
          </div>
          <form method="post" asp-controller="Staff" asp-action="Create"> <!--Posts to StaffController.Create, the tag helper also adds the anti-forgery token-->
+            <partial name="_KeepSearchAndSort"/>
             <div class="modal-body">
                <!--Full Name field-->
                <div class="mb-3">
@@ -172,6 +173,7 @@
             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
          </div>
          <form method="post" asp-controller="Staff" asp-action="Edit"> <!--Posts to StaffController.Edit, the tag helper also adds the anti-forgery token-->
+            <partial name="_KeepSearchAndSort"/>
             <div class="modal-body">
                <input type="hidden" id="edtStaffId" name="staffId"/>
                
@@ -220,6 +222,7 @@
             Are you sure you want to delete this staff member?
          </div>
          <form method="post" asp-controller="Staff" asp-action="Delete" id="deleteForm"> <!--Posts to StaffController.Delete, the tag helper also adds the anti-forgery token-->
+            <partial name="_KeepSearchAndSort"/>
             <input type="hidden" id="deleteStaffId" name="id"/>
             <div class="modal-footer">
                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>

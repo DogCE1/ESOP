@@ -142,6 +142,96 @@ public class StaffControllerTests : IDisposable
         Assert.Equal("StaffId not found", controller.TempData["EMessage"]);
     }
 
+    // ---------- Remembering search and sort after Create/Edit/Delete ----------
+
+    //Checks the redirect goes back to Index with the same search/sort the user had
+    private static void AssertBackToSameView(IActionResult result, string? search, string? sort, string? dir)
+    {
+        var redirect = Assert.IsType<RedirectToActionResult>(result);
+        Assert.Equal("Index", redirect.ActionName);
+        Assert.Equal(search, redirect.RouteValues?["search"]);
+        Assert.Equal(sort, redirect.RouteValues?["sort"]);
+        Assert.Equal(dir, redirect.RouteValues?["dir"]);
+    }
+
+    [Fact]
+    public void Create_KeepsSearchAndSort()
+    {
+        var result = NewController().Create(NewStaff("Alice", "alice@x.com"), "dev", "name", "desc");
+
+        AssertBackToSameView(result, "dev", "name", "desc");
+    }
+
+    [Fact]
+    public void Create_Failure_KeepsSearchAndSort()
+    {
+        NewController().Create(NewStaff("Bob", "bob@x.com"));
+
+        var result = NewController().Create(NewStaff("Robert", "bob@x.com"), "dev", "unit", "asc"); //Duplicate email
+
+        AssertBackToSameView(result, "dev", "unit", "asc");
+    }
+
+    [Fact]
+    public void Create_InvalidModel_KeepsSearchAndSort()
+    {
+        var controller = NewController();
+        controller.ModelState.AddModelError("Email", "Invalid");
+
+        var result = controller.Create(NewStaff("Alice", "bad"), "dev", "email", "desc");
+
+        AssertBackToSameView(result, "dev", "email", "desc");
+    }
+
+    [Fact]
+    public void Edit_KeepsSearchAndSort()
+    {
+        NewController().Create(NewStaff("Alice", "alice@x.com"));
+        var edited = NewStaff("Alicia", "alice@x.com");
+        edited.StaffId = 1;
+
+        var result = NewController().Edit(edited, "ali", "position", "asc");
+
+        AssertBackToSameView(result, "ali", "position", "asc");
+    }
+
+    [Fact]
+    public void Edit_Failure_KeepsSearchAndSort()
+    {
+        var unknown = NewStaff("Nobody", "no@x.com");
+        unknown.StaffId = 42;
+
+        var result = NewController().Edit(unknown, "ali", "name", "desc");
+
+        AssertBackToSameView(result, "ali", "name", "desc");
+    }
+
+    [Fact]
+    public void Delete_KeepsSearchAndSort()
+    {
+        NewController().Create(NewStaff("Alice", "alice@x.com"));
+
+        var result = NewController().Delete(1, "ali", "id", "desc");
+
+        AssertBackToSameView(result, "ali", "id", "desc");
+    }
+
+    [Fact]
+    public void Delete_Failure_KeepsSearchAndSort()
+    {
+        var result = NewController().Delete(42, "ali", "unit", "asc");
+
+        AssertBackToSameView(result, "ali", "unit", "asc");
+    }
+
+    [Fact]
+    public void Create_WithoutSearchOrSort_RedirectsToPlainIndex()
+    {
+        var result = NewController().Create(NewStaff("Alice", "alice@x.com"));
+
+        AssertBackToSameView(result, null, null, null);
+    }
+
     private class InMemoryTempDataProvider : ITempDataProvider
     {
         private IDictionary<string, object> _data = new Dictionary<string, object>();
