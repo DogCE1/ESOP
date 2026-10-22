@@ -1,8 +1,15 @@
 ﻿<!--Deliverable 3: Whole file-->
-@model List<ESOP.Models.StaffMember>
+@model ESOP.Models.StaffIndexViewModel
 
 @{
    ViewData["Title"] = "Staff Management";
+
+   //Helpers for the sortable column headers
+   //Clicking the column already sorted ascending flips it to descending, any other column starts ascending
+   string NextDir(string column) => Model.Sort == column && !Model.Descending ? "desc" : "asc";
+   string Arrow(string column) => Model.Sort != column ? "" : Model.Descending ? " ▼" : " ▲";
+   string AriaSort(string column) => Model.Sort != column ? "none" : Model.Descending ? "descending" : "ascending"; //Tells screen readers how the table is sorted
+   var currentDir = Model.Descending ? "desc" : "asc";
 }
 
 <!--These are the feedback messages, whether success or error. Gets feedback from controller after redirect-->
@@ -41,25 +48,55 @@
       </div>
    </div>
 
-   @if (Model.Count == 0)
+   @if (Model.TotalCount == 0)
    {
       <div class="alert alert-info">No staff members found. Click "Add new staff" to create one.</div>
    }
    else
    {
+      <!--Search: a GET form, so the search ends up in the URL (?search=...) and the page can be refreshed or bookmarked-->
+      <form method="get" asp-action="Index" class="row g-2 mb-3" role="search">
+         <!--Keep the current sort while searching-->
+         <input type="hidden" name="sort" value="@Model.Sort"/>
+         <input type="hidden" name="dir" value="@currentDir"/>
+         <div class="col-sm-8 col-md-6">
+            <input type="search" name="search" value="@Model.Search" class="form-control"
+                   placeholder="Search by ID, name, email, position or unit" aria-label="Search staff"/>
+         </div>
+         <div class="col-auto">
+            <button type="submit" class="btn btn-primary">Search</button>
+            @if (Model.Search != null)
+            {
+               <a asp-action="Index" asp-route-sort="@Model.Sort" asp-route-dir="@currentDir" class="btn btn-outline-secondary">Clear</a>
+            }
+         </div>
+      </form>
+
+      @if (Model.Search != null && Model.Staff.Count > 0)
+      {
+         <p class="text-muted">Showing @Model.Staff.Count of @Model.TotalCount staff members matching "@Model.Search".</p>
+      }
+   }
+
+   @if (Model.TotalCount > 0 && Model.Staff.Count == 0)
+   {
+      <div class="alert alert-warning">No staff members match "@Model.Search".</div>
+   }
+   else if (Model.Staff.Count > 0)
+   {
       <table class="table table-striped table-hover">
          <thead class="table-dark">
-         <tr> <!--Table headers-->
-            <th>ID</th>
-            <th>Full Name</th>
-            <th>Email</th>
-            <th>Position</th>
-            <th>Unit</th>
+         <tr> <!--Table headers: click one to sort by that column, click again to reverse. The current search is kept-->
+            <th aria-sort="@AriaSort("id")"><a class="text-white text-decoration-none" asp-action="Index" asp-route-search="@Model.Search" asp-route-sort="id" asp-route-dir="@NextDir("id")">ID@(Arrow("id"))</a></th>
+            <th aria-sort="@AriaSort("name")"><a class="text-white text-decoration-none" asp-action="Index" asp-route-search="@Model.Search" asp-route-sort="name" asp-route-dir="@NextDir("name")">Full Name@(Arrow("name"))</a></th>
+            <th aria-sort="@AriaSort("email")"><a class="text-white text-decoration-none" asp-action="Index" asp-route-search="@Model.Search" asp-route-sort="email" asp-route-dir="@NextDir("email")">Email@(Arrow("email"))</a></th>
+            <th aria-sort="@AriaSort("position")"><a class="text-white text-decoration-none" asp-action="Index" asp-route-search="@Model.Search" asp-route-sort="position" asp-route-dir="@NextDir("position")">Position@(Arrow("position"))</a></th>
+            <th aria-sort="@AriaSort("unit")"><a class="text-white text-decoration-none" asp-action="Index" asp-route-search="@Model.Search" asp-route-sort="unit" asp-route-dir="@NextDir("unit")">Unit@(Arrow("unit"))</a></th>
             <th>Actions</th>
          </tr>
          </thead>
          <tbody>
-         @foreach (var staff in Model)
+         @foreach (var staff in Model.Staff)
          {
             <tr><!--One row per staff member-->
                <td>@staff.StaffId</td>

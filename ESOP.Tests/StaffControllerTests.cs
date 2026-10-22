@@ -30,10 +30,48 @@ public class StaffControllerTests : IDisposable
     {
         NewController().Create(NewStaff("Alice", "alice@x.com"));
 
-        var view = Assert.IsType<ViewResult>(NewController().Index());
+        var view = Assert.IsType<ViewResult>(NewController().Index(null, null, null));
 
-        var model = Assert.IsType<List<StaffMember>>(view.Model);
-        Assert.Equal("Alice", Assert.Single(model).FullName);
+        var model = Assert.IsType<StaffIndexViewModel>(view.Model);
+        Assert.Equal("Alice", Assert.Single(model.Staff).FullName);
+        Assert.Null(model.Search);
+        Assert.Equal("id", model.Sort);
+        Assert.False(model.Descending);
+        Assert.Equal(1, model.TotalCount);
+    }
+
+    [Fact]
+    public void Index_WithSearchAndSort_PassesThemToTheView()
+    {
+        NewController().Create(NewStaff("Alice", "alice@x.com"));
+        NewController().Create(NewStaff("Bob", "bob@x.com"));
+
+        var view = Assert.IsType<ViewResult>(NewController().Index("  bob ", "name", "desc"));
+
+        var model = Assert.IsType<StaffIndexViewModel>(view.Model);
+        Assert.Equal("Bob", Assert.Single(model.Staff).FullName);
+        Assert.Equal("bob", model.Search); //Trimmed
+        Assert.Equal("name", model.Sort);
+        Assert.True(model.Descending);
+        Assert.Equal(2, model.TotalCount); //Total is everyone, not just the matches
+    }
+
+    [Theory]
+    [InlineData("password")] //Not a column
+    [InlineData("")]
+    public void Index_UnknownSort_FallsBackToId(string sort)
+    {
+        var view = Assert.IsType<ViewResult>(NewController().Index(null, sort, null));
+
+        Assert.Equal("id", Assert.IsType<StaffIndexViewModel>(view.Model).Sort);
+    }
+
+    [Fact]
+    public void Index_SortIsCaseInsensitive()
+    {
+        var view = Assert.IsType<ViewResult>(NewController().Index(null, "NAME", null));
+
+        Assert.Equal("name", Assert.IsType<StaffIndexViewModel>(view.Model).Sort);
     }
 
     [Fact]

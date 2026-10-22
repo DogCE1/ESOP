@@ -17,12 +17,25 @@ public class StaffController : Controller
         _staffService = staffService;
     }
     
+    //Values come from the URL, e.g. /Staff?search=dev&sort=name&dir=desc
     [HttpGet]
-    public IActionResult Index()
+    public IActionResult Index(string? search, string? sort, string? dir)
     {
-        //Loads all staff and displays them
-        var staffInfo = _staffService.GetAllStaff();
-        return View(staffInfo);
+        //Unknown sort values (e.g. typed into the URL by hand) fall back to sorting by ID
+        sort = sort?.ToLowerInvariant();
+        var sortColumn = sort != null && StaffService.SortColumns.Contains(sort) ? sort : "id";
+        var descending = dir == "desc";
+
+        //Loads the matching staff, sorted, and displays them
+        var model = new StaffIndexViewModel
+        {
+            Staff = _staffService.GetAllStaff(search, sortColumn, descending),
+            Search = string.IsNullOrWhiteSpace(search) ? null : search.Trim(),
+            Sort = sortColumn,
+            Descending = descending,
+            TotalCount = _staffService.CountStaff(),
+        };
+        return View(model);
     }
 
     [HttpPost]
